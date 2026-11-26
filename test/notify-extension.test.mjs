@@ -94,8 +94,10 @@ function captureStdout(t) {
   const writes = [];
   const original = process.stdout.write;
 
-  process.stdout.write = (chunk, encoding, callback) => {
-    writes.push(String(chunk));
+  process.stdout.write = function (chunk, encoding, callback) {
+    // Node's test runner also writes binary IPC frames to stdout.
+    if (typeof chunk !== "string") return original.apply(this, arguments);
+    writes.push(chunk);
     if (typeof encoding === "function") encoding();
     if (typeof callback === "function") callback();
     return true;
